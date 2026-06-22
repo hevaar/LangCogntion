@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Language & Cognition Study</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════ TOKENS — Soft off-white background ═══════════════ */
+:root {
+  --bg:        #f8f9fa;     /* soft off-white */
+  --bg2:       #eef0f3;     /* slightly deeper for top bar */
+  --surface:   #ffffff;     /* pure white card surfaces */
+  --surface2:  #e8ebef;     /* warm grey panel */
+  --border:    #c8cdd4;     /* clearer border */
+  --border2:   #9aa1ad;     /* stronger border for task UI */
+
+  --text:      #1d2840;     /* deep navy */
+  --text-sub:  #4a5670;     /* mid navy */
+  --text-dim:  #6e7589;     /* dim navy (slightly darker for legibility) */
+
+  --blue:      #1f5b73;     /* deep teal — task A */
+  --blue-soft: #cfe0e7;
+  --orange:    #b15a2c;     /* burnt sienna — task B */
+  --orange-soft:#f0d8c5;
+
+  --green:     #2f6d47;     /* deep forest */
+  --red:       #a93838;     /* deep brick */
+  --gold:      #936920;     /* deep gold */
+
+  --radius:    8px;
+  --ff-display:'Playfair Display', serif;
+  --ff-body:   'Jost', sans-serif;
+  --ff-mono:   'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--ff-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.65;
+  font-weight: 400;
+  /* Subtle paper texture via gradient */
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(0,0,0,.015) 0%, transparent 50%),
+    radial-gradient(circle at 80% 90%, rgba(0,0,0,.02) 0%, transparent 50%);
+}
+
+/* ═══ PROGRESS ═══ */
+#prog-wrap {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  height: 3px; background: var(--border);
+}
+#prog-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--gold));
+  width: 0%;
+  transition: width 700ms cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══ SCREENS ═══ */
+.screen {
+  display: none;
+  min-height: 100vh;
+  padding: 72px 24px 56px;
+  max-width: 740px;
+  margin: 0 auto;
+}
+.screen.active {
+  display: block;
+  animation: rise 450ms cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes rise {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ═══ TYPE ═══ */
+.badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--blue);
+  border: 1px solid var(--blue);
+  background: rgba(31,91,115,.06);
+  padding: 5px 12px;
+  border-radius: 20px;
+  margin-bottom: 22px;
+}
+.badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--blue); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+h1 {
+  font-family: var(--ff-display);
+  font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+h2 {
+  font-family: var(--ff-display);
+  font-size: 1.5rem;
+  color: var(--text);
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+h3 {
+  font-family: var(--ff-body);
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: .02em;
+}
+p { font-size: .95rem; color: var(--text-sub); margin-bottom: 12px; }
+.lead { font-size: 1.05rem; color: var(--text); }
+.dim  { font-size: .85rem; color: var(--text-dim); }
+ul { padding-left: 20px; margin-bottom: 12px; }
+ul li { font-size: .93rem; color: var(--text-sub); margin-bottom: 5px; }
+strong { color: var(--text); font-weight: 600; }
+
+hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+/* ═══ CARDS ═══ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 0 rgba(184,164,126,.15);
+}
+.card-blue {
+  background: rgba(31,91,115,.06);
+  border: 1px solid var(--blue);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  margin-bottom: 16px;
+}
+.card-gold {
+  background: rgba(147,105,32,.07);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  margin-bottom: 16px;
+}
+
+/* ═══ BUTTONS ═══ */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 26px;
+  border-radius: var(--radius);
+  font-family: var(--ff-body);
+  font-size: .93rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 150ms ease;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+}
+.btn-primary:hover { background: var(--text-sub); transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent;
+  color: var(--text-sub);
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover { border-color: var(--text-sub); color: var(--text); }
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+
+/* ═══ FORMS ═══ */
+.field { margin-bottom: 20px; }
+label {
+  display: block;
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--text-sub);
+  margin-bottom: 7px;
+  letter-spacing: .02em;
+}
+input[type=text], input[type=number], select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--ff-body);
+  font-size: .93rem;
+  color: var(--text);
+  transition: border-color 150ms;
+  appearance: none;
+}
+input:focus, select:focus { outline: none; border-color: var(--blue); }
+select { background-image: linear-gradient(45deg, transparent 50%, var(--text-sub) 50%), linear-gradient(135deg, var(--text-sub) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+
+.radio-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.radio-pills label {
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 400; font-size: .88rem;
+  cursor: pointer;
+  padding: 7px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  transition: all 130ms;
+  color: var(--text-sub);
+  margin-bottom: 0;
+  background: var(--surface);
+}
+.radio-pills input[type=radio] { display: none; }
+.radio-pills label:has(input:checked) {
+  border-color: var(--blue);
+  background: rgba(31,91,115,.1);
+  color: var(--blue);
+}
+
+.check-row { display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; }
+.check-row input[type=checkbox] {
+  width: 17px; height: 17px; margin-top: 2px;
+  cursor: pointer; flex-shrink: 0;
+  accent-color: var(--blue);
+}
+.check-row label { font-size: .9rem; color: var(--text-sub); cursor: pointer; margin-bottom: 0; font-weight: 400; }
+
+/* ═══ LIKERT ═══ */
+.likert-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 10px;
+  transition: border-color 200ms;
+}
+.likert-block.answered { border-color: var(--border2); }
+.likert-block p { margin-bottom: 10px; font-size: .91rem; color: var(--text); }
+.likert-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lk-end { font-size: .75rem; color: var(--text-dim); white-space: nowrap; }
+.lk-btns { display: flex; gap: 5px; }
+.lk-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  background: var(--bg);
+  color: var(--text-sub);
+  cursor: pointer;
+  font-family: var(--ff-mono);
+  font-size: .8rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 120ms;
+}
+.lk-btn:hover { border-color: var(--blue); color: var(--blue); }
+.lk-btn.sel { background: var(--blue); border-color: var(--blue); color: var(--bg); }
+
+/* ═══ ERROR ═══ */
+.err {
+  display: none;
+  font-size: .83rem;
+  color: var(--red);
+  margin-top: 10px;
+  font-family: var(--ff-mono);
+}
+
+/* ═══════════════════════════════════════════
+   TASK SCREEN
+═══════════════════════════════════════════ */
+#task-wrap {
+  display: none;
+  min-height: 100vh;
+  background: var(--bg);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  user-select: none;
+}
+#task-wrap.active { display: flex; }
+
+#task-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 28px;
+  background: #ffffff;
+  border-bottom: 1px solid #c8cdd4;
+  font-family: var(--ff-mono);
+  font-size: .78rem;
+  color: var(--text-dim);
+  z-index: 10;
+  box-shadow: 0 1px 4px rgba(29,40,64,.04);
+}
+#task-bar span { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+#task-bar .bar-val { font-size: .9rem; color: var(--text-sub); font-weight: 500; }
+
+#fix {
+  font-family: var(--ff-mono);
+  font-size: 2.5rem;
+  color: var(--text-dim);
+  position: absolute;
+}
+
+#frame-wrap {
+  position: relative;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.frame-outer {
+  width: 200px; height: 200px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  background: #ffffff;
+  transition: border-color 80ms, box-shadow 80ms;
+}
+.frame-outer.frame-blue {
+  border: 6px solid var(--blue);
+  box-shadow: 0 0 30px rgba(31,91,115,.15), inset 0 0 30px rgba(31,91,115,.04);
+}
+.frame-outer.frame-orange {
+  border: 6px solid var(--orange);
+  box-shadow: 0 0 30px rgba(177,90,44,.15), inset 0 0 30px rgba(177,90,44,.04);
+}
+
+.frame-outer::before, .frame-outer::after {
+  content:''; position: absolute;
+  width: 18px; height: 18px; border-radius: 2px;
+}
+.frame-outer::before { top:-3px; left:-3px; }
+.frame-outer::after  { bottom:-3px; right:-3px; }
+.frame-blue::before, .frame-blue::after { background: var(--blue); }
+.frame-orange::before, .frame-orange::after { background: var(--orange); }
+
+#frame-content {
+  font-family: var(--ff-mono);
+  font-size: 5rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text);
+  transition: opacity 80ms;
+}
+#frame-content.cue-phase {
+  font-size: 2rem;
+  color: var(--text-dim);
+}
+
+#key-row {
+  display: flex;
+  gap: 48px;
+  margin-top: 44px;
+}
+.key-unit { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.key-cap {
+  width: 56px; height: 56px;
+  background: #ffffff;
+  border: 2px solid #6e7589;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--ff-mono);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text);
+  box-shadow: 0 4px 0 #9aa1ad, 0 1px 3px rgba(29,40,64,.08);
+  transition: all 80ms;
+}
+.key-cap.pressed {
+  transform: translateY(3px);
+  box-shadow: none;
+  background: var(--blue);
+  border-color: var(--blue);
+  color: var(--bg);
+}
+.key-cap.pressed-wrong {
+  transform: translateY(3px);
+  box-shadow: none;
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--bg);
+}
+.key-desc {
+  font-family: var(--ff-mono);
+  font-size: .72rem;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+#feedback {
+  margin-top: 18px;
+  font-family: var(--ff-mono);
+  font-size: .95rem;
+  height: 22px;
+  letter-spacing: .06em;
+}
+.fb-ok    { color: var(--green); }
+.fb-err   { color: var(--red);   }
+
+#timeout-msg {
+  display: none;
+  font-family: var(--ff-mono);
+  font-size: .82rem;
+  color: var(--red);
+  margin-top: 10px;
+}
+
+/* ── BLOCK BREAK ── */
+#break-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+#break-screen.visible { display: flex; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin: 24px 0; width: 100%; }
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.stat-box .sv { font-family: var(--ff-display); font-size: 1.8rem; color: var(--text); display: block; }
+.stat-box .sl { font-size: .78rem; color: var(--text-dim); font-family: var(--ff-mono); }
+.csi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; width: 100%; }
+.csi-box {
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 12px;
+  font-size: .8rem; color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.csi-box .cv { font-family: var(--ff-mono); font-size: 1.1rem; color: var(--text-sub); display: block; margin-bottom: 2px; }
+
+/* ═══ DEBRIEF RESULTS ═══ */
+.result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 22px 0; }
+.r-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  text-align: center;
+}
+.r-box .rv { font-family: var(--ff-display); font-size: 2rem; color: var(--text); display: block; }
+.r-box .rl { font-size: .78rem; color: var(--text-dim); font-family: var(--ff-mono); margin-top: 4px; display: block; }
+
+/* ═══ EXAMPLE FRAME (instructions) ═══ */
+.frame-demo {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 72px; height: 72px;
+  border-radius: 8px;
+  font-family: var(--ff-mono);
+  font-size: 2.2rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  margin: 0 8px;
+  flex-shrink: 0;
+}
+.frame-demo.fd-blue   { border: 5px solid var(--blue); }
+.frame-demo.fd-orange { border: 5px solid var(--orange); }
+
+/* ═══ SECTION LABEL ═══ */
+.sec-label {
+  font-family: var(--ff-mono);
+  font-size: .72rem;
+  color: var(--text-dim);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* ═══ SUBMISSION STATUS ═══ */
+#submit-status.submit-pending { color: var(--text-dim); }
+#submit-status.submit-ok { color: var(--blue); font-weight: 600; }
+#submit-status.submit-err { color: var(--red); }
+
+</style>
+</head>
+<body>
+
+<div id="prog-wrap"><div id="prog-bar"></div></div>
+
+<!-- ═══════════════════════════════════════
+  S1 — CONSENT
+═══════════════════════════════════════ -->
+<div class="screen active" id="s-consent">
+  <div class="badge">Research Study · Language &amp; Cognition</div>
+  <h1>Inner Speech &amp; Set-Shifting in Bilinguals</h1>
+  <p class="lead">A study on how the language of internal thought relates to cognitive flexibility.</p>
+  <p class="dim">Estimated time: 18–22 minutes &nbsp;·&nbsp; Desktop/laptop required &nbsp;·&nbsp; Keyboard responses</p>
+  <hr>
+
+  <div class="card">
+    <h3>Purpose</h3>
+    <p>This study investigates whether the language bilingual individuals use in their inner speech is associated with their ability to shift efficiently between cognitive tasks — a component of executive function called <em>set-shifting</em> (Miyake et al., 2000).</p>
+  </div>
+
+  <div class="card">
+    <h3>What you will do</h3>
+    <ul>
+      <li>Complete a short vocabulary screening to verify English proficiency</li>
+      <li>Answer questions about your language background and inner speech habits</li>
+      <li>Brief mood check (4 items)</li>
+      <li>Perform a cued number-classification task measuring set-shifting</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Eligibility</h3>
+    <ul>
+      <li>Aged 18 or above</li>
+      <li>Fluent in English at C1 level or above</li>
+      <li>A speaker of at least one additional language</li>
+      <li>Using a <strong>desktop or laptop with a physical keyboard</strong> (task requires F and J keys)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Your rights as a participant</h3>
+    <p><strong>Voluntary participation.</strong> Your participation is entirely voluntary. You may withdraw at any time during the study, for any reason, without penalty — simply close the browser tab. Any data collected up to that point will be discarded.</p>
+    <p><strong>Anonymity.</strong> No names, email addresses, or identifying personal information are collected. You will be assigned a random participant ID generated at the moment you begin. If you came from Prolific, your Prolific ID is a pseudonymous identifier used only for compensation purposes and is not linked to your real identity.</p>
+    <p><strong>Data storage and use.</strong> Your anonymised responses are submitted automatically and securely to the researcher's database at the end of the study — no file is saved on your own device. Data will be used only for academic research purposes, including potential publication in scientific journals, and will be retained for a maximum of 10 years, after which it will be permanently deleted.</p>
+    <p><strong>Pre-registration.</strong> This study has been pre-registered on the Open Science Framework (OSF) before data collection began. The pre-registration is publicly available and contains the full study protocol and hypotheses.</p>
+  </div>
+
+  <div class="card">
+    <h3>Risks &amp; support</h3>
+    <p>This study involves answering questionnaires and performing a brief number-classification task. It poses minimal risk to participants. The task is not designed to assess intelligence or general ability — performance varies widely and is influenced by fatigue, time of day, and familiarity with computer tasks.</p>
+    <p>If you experience any distress during or after participation, please contact a mental health professional or a support helpline in your country (e.g. in the US: 988 Suicide &amp; Crisis Lifeline; in the UK: Samaritans 116 123; international directory: <em>findahelpline.com</em>).</p>
+    <p>For questions about this study or your participation, contact: <strong>hevarhusen@gmail.com</strong></p>
+  </div>
+
+  <div class="field">
+    <label>Prolific ID <span class="dim">(leave blank if not from Prolific)</span></label>
+    <input type="text" id="prolific-id" placeholder="e.g. 5f3c...">
+  </div>
+
+  <div class="check-row">
+    <input type="checkbox" id="consent-cb">
+    <label for="consent-cb">I confirm that: I have read and understood the information above; I am 18 years of age or older; I am fluent in English at C1 level or above; I am using a desktop or laptop computer with a physical keyboard; I understand that my participation is voluntary and that I may withdraw at any time by closing this tab; and I consent to participate in this study and to the use of my anonymised data for academic research purposes.</label>
+  </div>
+  <div class="err" id="consent-err">Please tick the box to confirm your consent.</div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="go_lextale()">Begin →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  S2 — LEXTALE (40 items)
+═══════════════════════════════════════ -->
+<div class="screen" id="s-lextale">
+  <div class="sec-label">Section 1 of 5 · Vocabulary Screen</div>
+  <h2>Word Judgement Task</h2>
+  <p>You will see 40 letter strings. Decide as quickly as possible whether each is a <strong>real English word</strong> or not. Trust your first instinct.</p>
+  <div class="card-blue">
+    <p style="margin:0; font-size:.9rem;">
+      Click <strong style="color:var(--green)">WORD</strong> for real English words &nbsp;·&nbsp;
+      Click <strong style="color:var(--red)">NOT A WORD</strong> for non-words
+    </p>
+  </div>
+  <button class="btn btn-primary" id="lt-start-btn" onclick="startLexTALE()">Start Vocabulary Screen →</button>
+
+  <div id="lt-trial" style="display:none; margin-top:36px; text-align:center;">
+    <div class="dim" id="lt-counter" style="font-family:var(--ff-mono); margin-bottom:20px;">Item 1 / 40</div>
+    <div id="lt-word" style="font-family:var(--ff-display); font-size:3.5rem; color:var(--text); margin-bottom:40px; letter-spacing:.04em;">—</div>
+    <div style="display:flex; gap:16px; justify-content:center;">
+      <button onclick="ltResp(true)"  style="padding:14px 32px; border-radius:var(--radius); border:2px solid var(--green); background:transparent; color:var(--green); font-family:var(--ff-mono); font-size:1rem; cursor:pointer; transition:all 120ms;" onmouseover="this.style.background='var(--green)';this.style.color='var(--bg)'" onmouseout="this.style.background='transparent';this.style.color='var(--green)'">✓ WORD</button>
+      <button onclick="ltResp(false)" style="padding:14px 32px; border-radius:var(--radius); border:2px solid var(--red); background:transparent; color:var(--red); font-family:var(--ff-mono); font-size:1rem; cursor:pointer; transition:all 120ms;" onmouseover="this.style.background='var(--red)';this.style.color='var(--bg)'" onmouseout="this.style.background='transparent';this.style.color='var(--red)'">✗ NOT A WORD</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  S3 — DEMOGRAPHICS
+═══════════════════════════════════════ -->
+<div class="screen" id="s-demographics">
+  <div class="sec-label">Section 2 of 5 · Background</div>
+  <h2>About You</h2>
+  <p class="dim">All responses are anonymous and confidential.</p>
+
+  <div class="card">
+    <div class="field">
+      <label>Age</label>
+      <input type="number" id="d-age" min="18" max="99" placeholder="e.g. 26">
+    </div>
+    <div class="field">
+      <label>Gender identity</label>
+      <select id="d-gender">
+        <option value="">— Select —</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Non-binary / gender diverse</option>
+        <option>Prefer not to say</option>
+        <option>Prefer to self-describe</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label>First language (L1)</label>
+      <input type="text" id="d-l1" placeholder="e.g. Kurdish (Sorani)">
+    </div>
+    <div class="field">
+      <label>Second language (L2) — the language other than L1 you are most proficient in</label>
+      <input type="text" id="d-l2" placeholder="e.g. English">
+    </div>
+    <div class="field">
+      <label>Age at which you began learning your L2</label>
+      <input type="number" id="d-aoa" min="0" max="60" placeholder="e.g. 10">
+    </div>
+    <div class="field">
+      <label>Years spent living in an environment where your L2 is the primary language</label>
+      <input type="number" id="d-imm" min="0" max="80" placeholder="e.g. 3">
+    </div>
+    <div class="field">
+      <label>Self-rated L2 proficiency</label>
+      <div class="radio-pills">
+        <label><input type="radio" name="prof" value="B2"><span>B2 (Upper-intermediate)</span></label>
+        <label><input type="radio" name="prof" value="C1"><span>C1 (Advanced)</span></label>
+        <label><input type="radio" name="prof" value="C2"><span>C2 (Proficient / Native-like)</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Number of languages you speak at C1 or above (including your L1)</label>
+      <div class="radio-pills">
+        <label><input type="radio" name="nlangs" value="1"><span>1</span></label>
+        <label><input type="radio" name="nlangs" value="2"><span>2</span></label>
+        <label><input type="radio" name="nlangs" value="3"><span>3</span></label>
+        <label><input type="radio" name="nlangs" value="4+"><span>4 or more</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>In a typical day, how often do you switch between languages in conversation or other overt (spoken/written) communication?</label>
+      <div class="radio-pills">
+        <label><input type="radio" name="overtswitch" value="1"><span>1 — Never / rarely</span></label>
+        <label><input type="radio" name="overtswitch" value="2"><span>2</span></label>
+        <label><input type="radio" name="overtswitch" value="3"><span>3</span></label>
+        <label><input type="radio" name="overtswitch" value="4"><span>4 — Several times a day</span></label>
+        <label><input type="radio" name="overtswitch" value="5"><span>5</span></label>
+        <label><input type="radio" name="overtswitch" value="6"><span>6</span></label>
+        <label><input type="radio" name="overtswitch" value="7"><span>7 — Constantly</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Highest level of education completed</label>
+      <select id="d-edu">
+        <option value="">— Select —</option>
+        <option>High school / secondary school</option>
+        <option>Some university (no degree)</option>
+        <option>Bachelor's degree</option>
+        <option>Master's degree</option>
+        <option>Doctoral degree</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Are you currently on a desktop or laptop with a physical keyboard?</label>
+      <div class="radio-pills">
+        <label><input type="radio" name="device" value="yes"><span>Yes</span></label>
+        <label><input type="radio" name="device" value="no"><span>No</span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="err" id="demo-err">Please complete all fields before continuing.</div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="submitDemo()">Continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  S4 — ISLUQ (Inner Speech Language Use Questionnaire)
+═══════════════════════════════════════ -->
+<div class="screen" id="s-isluq">
+  <div class="sec-label">Section 3 of 5 · Inner Speech &amp; Language</div>
+  <h2>Inner Speech Language Use</h2>
+  <p>The following statements concern your <strong>inner speech</strong> — the verbal thinking that takes place in your head, sometimes described as the "voice in your mind." Please rate how well each statement describes your typical experience. There are no right or wrong answers.</p>
+  <div class="card-blue" style="margin-bottom:20px;">
+    <p style="margin:0; font-size:.88rem; font-family:var(--ff-mono);">1 = Not at all like me &nbsp;·&nbsp; 7 = Very much like me</p>
+  </div>
+  <div id="isluq-container"></div>
+  <div class="err" id="isluq-err">Please respond to all items before continuing.</div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="submitISLUQ()">Continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  S5 — PANAS (4-item brief)
+═══════════════════════════════════════ -->
+<div class="screen" id="s-panas">
+  <div class="sec-label">Section 4 of 5 · Current Mood</div>
+  <h2>How are you feeling right now?</h2>
+  <p>A brief mood check (4 items). Rate how much you feel each one <strong>at this moment</strong>.</p>
+  <div class="card-blue" style="margin-bottom:20px;">
+    <p style="margin:0; font-size:.88rem; font-family:var(--ff-mono);">1 = Very slightly / not at all &nbsp;·&nbsp; 5 = Extremely</p>
+  </div>
+  <div id="panas-container"></div>
+  <div class="err" id="panas-err">Please rate all items before continuing.</div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="submitPANAS()">Continue to Main Task →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  S6 — TASK INSTRUCTIONS
+═══════════════════════════════════════ -->
+<div class="screen" id="s-instructions">
+  <div class="sec-label">Section 5 of 5 · Cognitive Task</div>
+  <h2>Number Classification Task</h2>
+
+  <p>You will see a single digit (1–9, never 5) inside a <strong>coloured frame</strong>. The colour of the frame tells you which rule to apply.</p>
+
+  <div class="card" style="border-left: 4px solid var(--blue);">
+    <h3 style="color:var(--blue);">Blue frame — Odd or Even?</h3>
+    <div style="display:flex; align-items:center; gap:16px; margin:12px 0;">
+      <div class="frame-demo fd-blue">7</div>
+      <div>
+        <p style="margin:0; color:var(--text-sub); font-size:.9rem;">Press <span style="font-family:var(--ff-mono); color:var(--text); font-weight:600;">F</span> if the number is <strong>odd</strong> &nbsp;(1, 3, 7, 9)</p>
+        <p style="margin:0; color:var(--text-sub); font-size:.9rem; margin-top:4px;">Press <span style="font-family:var(--ff-mono); color:var(--text); font-weight:600;">J</span> if the number is <strong>even</strong> &nbsp;(2, 4, 6, 8)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--orange);">
+    <h3 style="color:var(--orange);">Orange frame — Less or More than 5?</h3>
+    <div style="display:flex; align-items:center; gap:16px; margin:12px 0;">
+      <div class="frame-demo fd-orange">3</div>
+      <div>
+        <p style="margin:0; color:var(--text-sub); font-size:.9rem;">Press <span style="font-family:var(--ff-mono); color:var(--text); font-weight:600;">F</span> if the number is <strong>less than 5</strong> &nbsp;(1, 2, 3, 4)</p>
+        <p style="margin:0; color:var(--text-sub); font-size:.9rem; margin-top:4px;">Press <span style="font-family:var(--ff-mono); color:var(--text); font-weight:600;">J</span> if the number is <strong>more than 5</strong> &nbsp;(6, 7, 8, 9)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-gold">
+    <h3 style="color:var(--gold); margin-bottom:8px;">Important: The frame appears first</h3>
+    <p style="margin:0; font-size:.9rem;">The coloured frame appears briefly before the digit. Use this time to prepare. The frame colour changes on every trial — always check the colour before responding. Respond as <strong>quickly and accurately</strong> as possible using <strong>F</strong> (left hand) and <strong>J</strong> (right hand).</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0; font-size:.9rem;">You will first complete <strong>16 practice trials</strong> with feedback, then <strong>2 blocks of 40 trials</strong> without feedback. Brief rest breaks are provided between blocks.</p>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="startPractice()">Begin Practice (16 trials) →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  TASK SCREEN
+═══════════════════════════════════════ -->
+<div id="task-wrap">
+  <div id="task-bar">
+    <span>PHASE<div class="bar-val" id="tb-phase">Practice</div></span>
+    <span>TRIAL<div class="bar-val" id="tb-trial">— / —</div></span>
+    <span>ACCURACY<div class="bar-val" id="tb-acc">—</div></span>
+    <span>CSI<div class="bar-val" id="tb-csi">—</div></span>
+  </div>
+
+  <div id="fix" style="display:none;">+</div>
+
+  <div id="frame-wrap" style="display:none; flex-direction:column; align-items:center;">
+    <div class="frame-outer" id="frame-el">
+      <div id="frame-content">?</div>
+    </div>
+  </div>
+
+  <div id="key-row">
+    <div class="key-unit">
+      <div class="key-cap" id="key-f">F</div>
+      <div class="key-desc" id="key-f-desc">—</div>
+    </div>
+    <div class="key-unit">
+      <div class="key-cap" id="key-j">J</div>
+      <div class="key-desc" id="key-j-desc">—</div>
+    </div>
+  </div>
+
+  <div id="feedback"></div>
+  <div id="timeout-msg">Too slow — please respond faster</div>
+
+  <div id="break-screen">
+    <div class="badge" id="break-badge">Block 1 Complete</div>
+    <h2 id="break-title">Take a short break</h2>
+    <p id="break-msg" style="max-width:440px;"></p>
+    <div class="stat-grid" id="break-stats"></div>
+    <div class="csi-grid" id="csi-stats"></div>
+    <button class="btn btn-primary" onclick="continueTask()">Continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  S7 — DEBRIEF
+═══════════════════════════════════════ -->
+<div class="screen" id="s-debrief">
+  <div class="badge">Study Complete</div>
+  <h1>Thank you for participating</h1>
+
+  <div class="card">
+    <h3>What this study was about</h3>
+    <p>This study examined whether the language bilingual individuals use in inner speech is associated with <strong>set-shifting ability</strong> — the capacity to efficiently redirect attention between different cognitive tasks, a specific component of executive function identified by Miyake et al. (2000).</p>
+    <p>Your performance on the number classification task provided a measure of set-shifting, specifically your <em>switch cost</em> — the reaction time penalty incurred when switching from one classification rule to another. Your inner speech questionnaire responses will be correlated with switch costs across all participants.</p>
+    <p>The task included a <strong>cue-stimulus interval (CSI) manipulation</strong> — trials with short (200ms) and long (1200ms) preparation times — to examine whether preparation time modulates switch costs differently depending on inner speech habits.</p>
+  </div>
+
+  <h2 style="margin-top:24px;">Your Performance</h2>
+  <div class="result-grid" id="final-results"></div>
+
+  <div class="card" style="margin-top:6px;">
+    <h3>CSI Preparation Effects</h3>
+    <div class="csi-grid" id="final-csi" style="margin:0;"></div>
+    <p style="margin-top:12px; margin-bottom:0; font-size:.85rem; color:var(--text-dim);">A larger reduction in switch cost from Short to Long CSI indicates greater ability to use preparation time to reconfigure task-sets — a theoretically meaningful individual difference.</p>
+  </div>
+
+  <div class="card" style="margin-top:6px;">
+    <h3>Interpretation</h3>
+    <p id="interp-text" style="margin:0;"></p>
+    <p class="dim" style="margin-top:8px; margin-bottom:0;">Note: Individual results are for informational purposes. Study conclusions are drawn from group-level patterns, not individual performance.</p>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--gold);">
+    <h3>Saving your data</h3>
+    <p id="submit-status" class="submit-pending">Saving your data…</p>
+    <div id="prolific-block" style="display:none; margin-top:16px;">
+      <p style="margin-bottom:6px;">Prolific completion code:</p>
+      <div style="font-family:var(--ff-mono); font-size:1.1rem; background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius); padding:12px 20px; letter-spacing:.1em;">LANGCOG-2025-COMPLETE</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Questions or concerns</h3>
+    <p style="margin:0;">Contact the researcher at <strong>hevarhusen@gmail.com</strong>. Reaction time performance varies widely across individuals and is sensitive to fatigue, time of day, and computer familiarity — it is not a measure of intelligence or general ability.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  (data submitted automatically — no download modal needed)
+═══════════════════════════════════════ -->
+
+<script>
+'use strict';
+
+// ─────────────────────────────────────────
+// DATA STORE
+// ─────────────────────────────────────────
+const D = {
+  pid:        'P_' + Date.now() + '_' + Math.random().toString(36).substr(2,4).toUpperCase(),
+  timestamp:  new Date().toISOString(),
+  prolificId: '',
+  recruitmentSource: '',
+  lextale:    { score: null, hits: 0, correctRejections: 0, responses: [] },
+  demo:       {},
+  isluq:      { responses: [], subscales: {}, totalMean: null },
+  panas:      { positive: null, negative: null, responses: [] },
+  task: {
+    practice: [],
+    trials:   [],
+    overallAcc:          null,
+    switchCost_RT:       null,
+    switchCost_acc:      null,
+    meanRT_switch:       null,
+    meanRT_repeat:       null,
+    short_switch_RT:     null,
+    short_repeat_RT:     null,
+    long_switch_RT:      null,
+    long_repeat_RT:      null,
+    shortCSI_switchCost: null,
+    longCSI_switchCost:  null,
+    csiEffect:           null,
+  }
+};
+
+// ─────────────────────────────────────────
+// SCREEN NAVIGATION
+// ─────────────────────────────────────────
+const PROG = { consent:0, lextale:14, demographics:28, isluq:44, panas:58, instructions:72, debrief:100 };
+
+// ─────────────────────────────────────────
+// RECRUITMENT SOURCE (from URL parameter)
+// Share a different link per platform, e.g.:
+//   ...experiment.html?src=prolific
+//   ...experiment.html?src=reddit
+//   ...experiment.html?src=facebook
+// No parameter present -> recorded as "direct"
+// ─────────────────────────────────────────
+function getRecruitmentSource() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const src = params.get('src');
+    return src ? src.toLowerCase().trim().slice(0, 40) : 'direct';
+  } catch (e) {
+    return 'unknown';
+  }
+}
+D.recruitmentSource = getRecruitmentSource();
+
+// ─────────────────────────────────────────
+// PREVENT RE-SUBMISSION ON SAME BROWSER
+// Flag is set only on actual completion (success OR
+// post-completion storage failure), never on abandonment —
+// so a genuine technical dropout mid-study can still retry,
+// but a finished participant cannot submit twice.
+// ─────────────────────────────────────────
+const COMPLETION_FLAG_KEY = 'langcog_completed_v1';
+
+function checkAlreadyCompleted() {
+  try { return localStorage.getItem(COMPLETION_FLAG_KEY) === '1'; }
+  catch (e) { return false; }
+}
+function markCompleted() {
+  try { localStorage.setItem(COMPLETION_FLAG_KEY, '1'); } catch (e) {}
+}
+function showAlreadyCompletedScreen() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const tw = document.getElementById('task-wrap');
+  if (tw) tw.classList.remove('active');
+  const consentScreen = document.getElementById('s-consent');
+  consentScreen.innerHTML = `
+    <div class="badge">Already Completed</div>
+    <h1>Thank you again!</h1>
+    <div class="card">
+      <p>Our records show this study has already been completed on this browser. Each person may only participate once.</p>
+      <p style="margin-top:10px;">If you believe this is an error, please contact the researcher at <strong>hevarhusen@gmail.com</strong>.</p>
+    </div>`;
+  consentScreen.classList.add('active');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('task-wrap').classList.remove('active');
+  const el = document.getElementById('s-' + id);
+  if (el) { el.classList.add('active'); }
+  window.scrollTo(0, 0);
+  if (PROG[id] !== undefined) setProgress(PROG[id]);
+}
+
+function showTask() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('task-wrap').classList.add('active');
+  setProgress(80);
+}
+
+function setProgress(pct) {
+  document.getElementById('prog-bar').style.width = pct + '%';
+}
+
+// ─────────────────────────────────────────
+// CONSENT
+// ─────────────────────────────────────────
+function go_lextale() {
+  if (!document.getElementById('consent-cb').checked) {
+    document.getElementById('consent-err').style.display = 'block'; return;
+  }
+  document.getElementById('consent-err').style.display = 'none';
+  D.prolificId = document.getElementById('prolific-id').value.trim();
+  showScreen('lextale');
+}
+
+// ─────────────────────────────────────────
+// LEXTALE — Validated word list (Lemhöfer & Broersma, 2012)
+// Source: Lemhöfer, K., & Broersma, M. (2012). Introducing LexTALE: A quick
+//   and valid Lexical Test for Advanced Learners of English.
+//   Behavior Research Methods, 44(2), 325–343.
+//
+// VERIFICATION NOTE: Verify these items against the original published list
+// at https://www.lextale.com before final deployment. The list below reflects
+// the validated 40-item subset (27 real words + 13 nonwords) drawn from the
+// original 60-item LexTALE.
+//
+// Scoring: ((words_correct / 27) + (nonwords_correct / 13)) / 2 × 100
+// The 2:1 weighting corrects for unequal item numbers.
+// C1 threshold: ≥ 60 (Lemhöfer & Broersma, 2012)
+// ─────────────────────────────────────────
+const LT_REAL = [
+  'denial','generic','scornful','stoutly','ablaze','moonlit','lofty',
+  'hurricane','flaw','unkempt','breeding','festivity','screech','savoury',
+  'shin','fluid','allied','slain','recipient','eloquence','muddy',
+  'turmoil','hasty','crumb','rascal','crouch','plough'
+];
+const LT_NONREAL = [
+  'platery','mensible','kermshaw','alberation','plaudate','spaunch',
+  'exprate','proom','cuvic','cleeky','sturry','pulsh','rebondicate'
+];
+
+const LT_ITEMS = shuffle([
+  ...LT_REAL.map(w => ({word: w, real: true})),
+  ...LT_NONREAL.map(w => ({word: w, real: false}))
+]);
+
+let ltIdx = 0, ltHits = 0, ltCR = 0;
+
+function startLexTALE() {
+  document.getElementById('lt-start-btn').style.display='none';
+  document.getElementById('lt-trial').style.display='block';
+  showLTItem();
+}
+function showLTItem() {
+  if (ltIdx >= LT_ITEMS.length) { finishLT(); return; }
+  document.getElementById('lt-counter').textContent = `Item ${ltIdx+1} / ${LT_ITEMS.length}`;
+  document.getElementById('lt-word').textContent = LT_ITEMS[ltIdx].word;
+}
+function ltResp(isWord) {
+  const item = LT_ITEMS[ltIdx];
+  const correct = isWord === item.real;
+  if (item.real && isWord) ltHits++;
+  if (!item.real && !isWord) ltCR++;
+  D.lextale.responses.push({ word:item.word, real:item.real, response:isWord, correct });
+  ltIdx++;
+  showLTItem();
+}
+function finishLT() {
+  // Adjusted scoring for 27 real / 13 nonreal
+  const score = ((ltHits/LT_REAL.length) + (ltCR/LT_NONREAL.length)) / 2 * 100;
+  D.lextale.score = Math.round(score*10)/10;
+  D.lextale.hits = ltHits;
+  D.lextale.correctRejections = ltCR;
+  document.getElementById('lt-trial').style.display='none';
+  showScreen('demographics');
+}
+
+// ─────────────────────────────────────────
+// DEMOGRAPHICS
+// ─────────────────────────────────────────
+function submitDemo() {
+  const age    = document.getElementById('d-age').value;
+  const gender = document.getElementById('d-gender').value;
+  const l1     = document.getElementById('d-l1').value.trim();
+  const l2     = document.getElementById('d-l2').value.trim();
+  const aoa    = document.getElementById('d-aoa').value;
+  const imm    = document.getElementById('d-imm').value;
+  const prof   = document.querySelector('input[name=prof]:checked');
+  const nl     = document.querySelector('input[name=nlangs]:checked');
+  const overt  = document.querySelector('input[name=overtswitch]:checked');
+  const edu    = document.getElementById('d-edu').value;
+  const device = document.querySelector('input[name=device]:checked');
+  const err    = document.getElementById('demo-err');
+
+  if (!age||!gender||!l1||!l2||!aoa||imm===''||!prof||!nl||!overt||!edu||!device) {
+    err.style.display='block'; return;
+  }
+  if (device.value === 'no') {
+    alert('This task requires a physical keyboard. Please return on a desktop or laptop. Thank you!'); return;
+  }
+  err.style.display='none';
+  D.demo = {
+    age:+age, gender, l1, l2, aoa:+aoa, immersionYears:+imm,
+    proficiency:prof.value, numLanguagesC1plus:nl.value,
+    overtSwitchingFrequency:+overt.value,
+    education:edu
+  };
+  buildISLUQ();
+  showScreen('isluq');
+}
+
+// ─────────────────────────────────────────
+// ISLUQ — Inner Speech Language Use Questionnaire
+//
+// IMPORTANT: This is a STUDY-SPECIFIC, NON-VALIDATED instrument developed
+// for this study because no validated instrument exists for assessing inner
+// speech language switching in bilinguals. Items were generated based on
+// theoretical considerations from:
+//   - Alderson-Day, B., & Fernyhough, C. (2015). Inner speech: Development,
+//     cognitive functions, phenomenology, and neuropathology. Psychological
+//     Bulletin, 141(5), 931–965.
+//   - Pavlenko, A. (2012). Affective processing in bilingual speakers:
+//     Disembodied cognition? International Journal of Psychology, 47(6),
+//     405–428.
+//
+// Methods section MUST disclose that this instrument is novel, non-validated,
+// and developed specifically for this study. Internal consistency (Cronbach's
+// alpha) should be reported.
+//
+// Subscales (theoretically motivated, structure to be confirmed via factor
+// analysis with adequate sample size):
+//   F = Switching Frequency
+//   C = Contextual Language Use
+//   A = Awareness and Control
+//
+// The primary predictor variable for the study hypothesis is the overall
+// ISLUQ Switching Frequency subscale mean, or the total ISLUQ mean as a
+// secondary index.
+// ─────────────────────────────────────────
+const ISLUQ = [
+  // ── Switching Frequency (F) — 3 items ──
+  { t:"When thinking internally, I switch between languages several times within the same train of thought.",                              s:'F' },
+  { t:"Within a typical day, the language of my inner speech changes depending on the topic.",                                              s:'F' },
+  { t:"When I am thinking about a problem, I sometimes shift to a different language without intending to.",                                s:'F' },
+  // ── Contextual Language Use (C) — 4 items ──
+  { t:"I tend to think in my first language (L1) when reflecting on personal or emotional matters.",                                        s:'C' },
+  { t:"I tend to think in my second language (L2) when planning or analysing technical problems.",                                          s:'C' },
+  { t:"When I rehearse what I am going to say to someone, I think in the language I will speak to them in.",                               s:'C' },
+  { t:"Numbers and arithmetic come to me in a specific language.",                                                                          s:'C' },
+  // ── Awareness and Control (A) — 3 items ──
+  { t:"I am aware of which language I am thinking in at any given moment.",                                                                 s:'A' },
+  { t:"I can deliberately choose which language to think in.",                                                                              s:'A' },
+  { t:"Switching the language of my inner speech feels effortful.",                                                                         s:'A' },
+];
+
+function buildISLUQ() {
+  const c = document.getElementById('isluq-container');
+  if (c.children.length) return;
+  ISLUQ.forEach((item, i) => {
+    const d = document.createElement('div');
+    d.className='likert-block'; d.id='ib-'+i;
+    d.innerHTML=`<p>${i+1}. ${item.t}</p>
+    <div class="likert-row">
+      <span class="lk-end">Not at all like me</span>
+      <div class="lk-btns">
+        ${[1,2,3,4,5,6,7].map(v=>`<button class="lk-btn" id="ilk-${i}-${v}" onclick="pickLK('i',${i},${v})">${v}</button>`).join('')}
+      </div>
+      <span class="lk-end">Very much like me</span>
+    </div>`;
+    c.appendChild(d);
+  });
+}
+
+function pickLK(scale, q, v) {
+  // scale: 'i' = ISLUQ (1-7), 'p' = PANAS (1-5)
+  const max = scale==='i'?7:5;
+  for(let x=1;x<=max;x++) {
+    const b=document.getElementById(`${scale}lk-${q}-${x}`);
+    if(b) b.classList.remove('sel');
+  }
+  const btn=document.getElementById(`${scale}lk-${q}-${v}`);
+  if(btn) btn.classList.add('sel');
+  const blockPrefix = scale==='i' ? 'ib-' : 'pb-';
+  const block=document.getElementById(`${blockPrefix}${q}`);
+  if(block) block.classList.add('answered');
+}
+
+function submitISLUQ() {
+  const responses=[]; let ok=true;
+  ISLUQ.forEach((item,i)=>{
+    const sel=document.querySelector(`#ib-${i} .lk-btn.sel`);
+    if(!sel){ok=false;return;}
+    responses.push({item:i+1,subscale:item.s,text:item.t,value:+sel.textContent});
+  });
+  if(!ok){document.getElementById('isluq-err').style.display='block';return;}
+  document.getElementById('isluq-err').style.display='none';
+  D.isluq.responses=responses;
+  ['F','C','A'].forEach(sub=>{
+    const vals=responses.filter(r=>r.subscale===sub).map(r=>r.value);
+    D.isluq.subscales[sub]=mean(vals);
+  });
+  D.isluq.totalMean = mean(responses.map(r=>r.value));
+  buildPANAS();
+  showScreen('panas');
+}
+
+// ─────────────────────────────────────────
+// PANAS — 4-item brief (2 P + 2 N)
+// ─────────────────────────────────────────
+const PANAS = [
+  { t:'Alert',        v:'P' },
+  { t:'Enthusiastic', v:'P' },
+  { t:'Distressed',   v:'N' },
+  { t:'Nervous',      v:'N' },
+];
+
+function buildPANAS() {
+  const c = document.getElementById('panas-container');
+  if (c.children.length) return;
+  PANAS.forEach((item, i) => {
+    const d = document.createElement('div');
+    d.className='likert-block'; d.id='pb-'+i;
+    d.innerHTML=`<p style="font-weight:600; font-size:1rem;">${item.t}</p>
+    <div class="likert-row">
+      <span class="lk-end">Not at all</span>
+      <div class="lk-btns">
+        ${[1,2,3,4,5].map(v=>`<button class="lk-btn" id="plk-${i}-${v}" onclick="pickLK('p',${i},${v})">${v}</button>`).join('')}
+      </div>
+      <span class="lk-end">Extremely</span>
+    </div>`;
+    c.appendChild(d);
+  });
+}
+
+function submitPANAS() {
+  const responses=[]; let ok=true;
+  PANAS.forEach((item,i)=>{
+    const sel=document.querySelector(`#pb-${i} .lk-btn.sel`);
+    if(!sel){ok=false;return;}
+    responses.push({item:item.t,valence:item.v,value:+sel.textContent});
+  });
+  if(!ok){document.getElementById('panas-err').style.display='block';return;}
+  document.getElementById('panas-err').style.display='none';
+  D.panas.responses=responses;
+  D.panas.positive=mean(responses.filter(r=>r.valence==='P').map(r=>r.value));
+  D.panas.negative=mean(responses.filter(r=>r.valence==='N').map(r=>r.value));
+  showScreen('instructions');
+}
+
+// ─────────────────────────────────────────
+// TASK SWITCHING
+// ─────────────────────────────────────────
+const DIGITS = [1,2,3,4,6,7,8,9];
+const CSI_SHORT = 200;
+const CSI_LONG  = 1200;
+const ITI       = 500;
+const FIX_DUR   = 400;
+const MAX_RT    = 2500;
+
+let isPractice = true;
+let trialList  = [];
+let trialIdx   = 0;
+let blockNum   = 0;
+let totalBlocks= 2;
+let trialsPerBlock = 40;
+let awaitingResp = false;
+let tStart = null;
+let timeoutHandle = null;
+let runningCorrect = 0;
+let runningTotal   = 0;
+
+function makeDigitSequence(n) {
+  const seq = [];
+  while (seq.length < n) {
+    seq.push(...shuffle([...DIGITS]));
+  }
+  return seq.slice(0, n);
+}
+
+function getCorrectKey(task, digit) {
+  return task === 'A'
+    ? (digit % 2 !== 0 ? 'f' : 'j')
+    : (digit < 5 ? 'f' : 'j');
+}
+
+function isCongruent(digit) {
+  const aKey = digit % 2 !== 0 ? 'f' : 'j';
+  const bKey = digit < 5 ? 'f' : 'j';
+  return aKey === bKey;
+}
+
+function generateTrials(n) {
+  const digitSeq = makeDigitSequence(n);
+  const trials = [];
+  let prevTask = Math.random() < .5 ? 'A' : 'B';
+
+  for (let i = 0; i < n; i++) {
+    const task = i === 0 ? prevTask : (Math.random() < .5 ? 'A' : 'B');
+    const csi  = Math.random() < .5 ? CSI_SHORT : CSI_LONG;
+    const digit = digitSeq[i];
+    trials.push({
+      task, digit, csi,
+      switchTrial: i === 0 ? null : task !== prevTask,
+      congruent:   isCongruent(digit),
+      correctKey:  getCorrectKey(task, digit),
+      rt: null, correct: null, response: null,
+    });
+    prevTask = task;
+  }
+  return trials;
+}
+
+function startPractice() {
+  isPractice = true;
+  trialList = generateTrials(16);
+  trialIdx = 0; runningCorrect = 0; runningTotal = 0;
+  document.getElementById('tb-phase').textContent = 'Practice';
+  showTask();
+  updateBar();
+  document.addEventListener('keydown', onKey);
+  nextTrial();
+}
+
+function startMainTask() {
+  isPractice = false;
+  blockNum = 1;
+  newBlock();
+}
+
+function newBlock() {
+  trialList = generateTrials(trialsPerBlock);
+  trialIdx = 0; runningCorrect = 0; runningTotal = 0;
+  document.getElementById('tb-phase').textContent = `Block ${blockNum} / ${totalBlocks}`;
+  hidBreak();
+  updateBar();
+  document.addEventListener('keydown', onKey);
+  nextTrial();
+}
+
+function nextTrial() {
+  if (trialIdx >= trialList.length) { endBlock(); return; }
+  const t = trialList[trialIdx];
+  awaitingResp = false;
+
+  document.getElementById('fix').style.display = 'none';
+  document.getElementById('frame-wrap').style.display = 'none';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = '';
+  document.getElementById('timeout-msg').style.display = 'none';
+  hidBreak();
+
+  if (t.task === 'A') {
+    document.getElementById('key-f-desc').textContent = 'ODD\n(1 3 7 9)';
+    document.getElementById('key-j-desc').textContent = 'EVEN\n(2 4 6 8)';
+  } else {
+    document.getElementById('key-f-desc').textContent = 'LESS THAN 5\n(1 2 3 4)';
+    document.getElementById('key-j-desc').textContent = 'MORE THAN 5\n(6 7 8 9)';
+  }
+
+  setTimeout(() => {
+    document.getElementById('fix').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('fix').style.display = 'none';
+      showFrame(t.task, null);
+      setTimeout(() => {
+        showFrame(t.task, t.digit);
+        tStart = performance.now();
+        awaitingResp = true;
+        timeoutHandle = setTimeout(() => {
+          if (!awaitingResp) return;
+          awaitingResp = false;
+          t.rt = MAX_RT; t.correct = false; t.response = 'timeout';
+          storeTrialResult(t);
+          document.getElementById('timeout-msg').style.display = 'block';
+          setTimeout(() => { trialIdx++; updateBar(); nextTrial(); }, 800);
+        }, MAX_RT);
+      }, t.csi);
+    }, FIX_DUR);
+  }, ITI);
+}
+
+function showFrame(task, digit) {
+  const fw = document.getElementById('frame-wrap');
+  const fe = document.getElementById('frame-el');
+  const fc = document.getElementById('frame-content');
+
+  fw.style.display = 'flex';
+  fe.className = 'frame-outer ' + (task === 'A' ? 'frame-blue' : 'frame-orange');
+
+  if (digit === null) {
+    fc.textContent = '?';
+    fc.className = 'cue-phase';
+    fc.id = 'frame-content';
+  } else {
+    fc.textContent = digit;
+    fc.className = '';
+    fc.id = 'frame-content';
+  }
+}
+
+function onKey(e) {
+  if (!awaitingResp) return;
+  const key = e.key.toLowerCase();
+  if (key !== 'f' && key !== 'j') return;
+  e.preventDefault();
+  awaitingResp = false;
+  clearTimeout(timeoutHandle);
+
+  const rt = Math.round(performance.now() - tStart);
+  const t  = trialList[trialIdx];
+  const ok = key === t.correctKey;
+  t.rt = rt; t.correct = ok; t.response = key;
+
+  const kEl = document.getElementById(key==='f'?'key-f':'key-j');
+  kEl.classList.add(ok ? 'pressed' : 'pressed-wrong');
+  setTimeout(() => { kEl.classList.remove('pressed','pressed-wrong'); }, 120);
+
+  storeTrialResult(t);
+
+  if (isPractice) {
+    const fb = document.getElementById('feedback');
+    fb.textContent = ok ? '✓ Correct' : `✗ Incorrect — correct key was ${t.correctKey.toUpperCase()}`;
+    fb.className = ok ? 'fb-ok' : 'fb-err';
+  }
+
+  trialIdx++;
+  updateBar();
+  setTimeout(nextTrial, isPractice ? 700 : 350);
+}
+
+function storeTrialResult(t) {
+  if (t.correct) runningCorrect++;
+  runningTotal++;
+  if (isPractice) D.task.practice.push({...t});
+  else            D.task.trials.push({...t});
+}
+
+function updateBar() {
+  const total = trialList.length;
+  const cur   = Math.min(trialIdx + 1, total);
+  document.getElementById('tb-trial').textContent = `${cur} / ${total}`;
+  document.getElementById('tb-acc').textContent   = runningTotal
+    ? Math.round(runningCorrect/runningTotal*100) + '%' : '—';
+  const t = trialList[trialIdx] || trialList[trialIdx-1];
+  if (t) document.getElementById('tb-csi').textContent = (t.csi===CSI_SHORT?'200':'1200') + 'ms';
+}
+
+function endBlock() {
+  document.removeEventListener('keydown', onKey);
+  document.getElementById('fix').style.display='none';
+  document.getElementById('frame-wrap').style.display='none';
+  document.getElementById('feedback').textContent='';
+
+  if (isPractice) {
+    showBreak({
+      badge: 'Practice Complete',
+      title: 'Ready for the main task?',
+      msg:   `You got ${runningCorrect}/16 correct. The main task has no feedback. Always check the frame colour before responding. Press Continue when ready.`,
+      stats: [{ v: Math.round(runningCorrect/16*100)+'%', l:'Practice Accuracy' }],
+      csiStats: [],
+      btnLabel: 'Begin Main Task',
+      onContinue: startMainTask,
+    });
+  } else {
+    const blockTrials = D.task.trials.slice(-trialsPerBlock);
+    const stats = computeBlockStats(blockTrials);
+
+    if (blockNum < totalBlocks) {
+      showBreak({
+        badge: `Block ${blockNum} of ${totalBlocks} Complete`,
+        title: 'Take a short break',
+        msg:   'Rest as long as you need. Continue when ready.',
+        stats: [
+          { v: stats.acc+'%',                 l:'Block Accuracy' },
+          { v: (stats.overallSC||'—')+'ms',   l:'Overall Switch Cost' },
+        ],
+        csiStats: [
+          { v:(stats.shortSC||'—')+'ms', l:'Short CSI Switch Cost' },
+          { v:(stats.longSC||'—')+'ms',  l:'Long CSI Switch Cost' },
+        ],
+        btnLabel: 'Continue →',
+        onContinue: () => { blockNum++; newBlock(); },
+      });
+    } else {
+      try {
+        computeFullResults();
+      } catch (e) {
+        console.error('Error computing results:', e);
+      }
+      document.getElementById('task-wrap').classList.remove('active');
+      showScreen('debrief');
+      setProgress(100);
+    }
+  }
+}
+
+let breakContinueFn = null;
+function showBreak({ badge, title, msg, stats, csiStats, btnLabel, onContinue }) {
+  document.getElementById('break-badge').textContent = badge;
+  document.getElementById('break-title').textContent = title;
+  document.getElementById('break-msg').textContent   = msg;
+  document.getElementById('break-stats').innerHTML = stats.map(s=>
+    `<div class="stat-box"><span class="sv">${s.v}</span><span class="sl">${s.l}</span></div>`
+  ).join('');
+  document.getElementById('csi-stats').innerHTML = csiStats.map(s=>
+    `<div class="csi-box"><span class="cv">${s.v}</span>${s.l}</div>`
+  ).join('');
+  document.querySelector('#break-screen button').textContent = btnLabel;
+  breakContinueFn = onContinue;
+  document.getElementById('break-screen').classList.add('visible');
+  document.getElementById('frame-wrap').style.display='none';
+  document.getElementById('fix').style.display='none';
+  document.getElementById('key-row').style.display='none';
+  document.getElementById('feedback').textContent='';
+}
+function hidBreak() {
+  document.getElementById('break-screen').classList.remove('visible');
+  document.getElementById('key-row').style.display='flex';
+}
+function continueTask() {
+  hidBreak();
+  if (breakContinueFn) breakContinueFn();
+}
+
+function computeBlockStats(trials) {
+  const acc = Math.round(trials.filter(t=>t.correct).length / trials.length * 100);
+  const valid = trials.filter(t=>t.switchTrial!==null && t.correct && t.rt>150 && t.rt<3000);
+
+  const sc = csiSC(valid);
+  const shortSC = csiSC(valid.filter(t=>t.csi===CSI_SHORT));
+  const longSC  = csiSC(valid.filter(t=>t.csi===CSI_LONG));
+
+  return { acc, overallSC: sc, shortSC, longSC };
+}
+
+function csiSC(valid) {
+  const sw = valid.filter(t=>t.switchTrial===true).map(t=>t.rt);
+  const rp = valid.filter(t=>t.switchTrial===false).map(t=>t.rt);
+  if (!sw.length || !rp.length) return null;
+  return Math.round(mean(sw) - mean(rp));
+}
+
+function computeFullResults() {
+  const trials = D.task.trials;
+  if (!trials.length) return;
+
+  D.task.overallAcc = Math.round(trials.filter(t=>t.correct).length/trials.length*100);
+
+  const valid = trials.filter(t=>t.switchTrial!==null && t.correct && t.rt>150 && t.rt<3000);
+  const sw = valid.filter(t=>t.switchTrial===true);
+  const rp = valid.filter(t=>t.switchTrial===false);
+
+  D.task.meanRT_switch = rnd(mean(sw.map(t=>t.rt)));
+  D.task.meanRT_repeat = rnd(mean(rp.map(t=>t.rt)));
+  D.task.switchCost_RT = (D.task.meanRT_switch !== null && D.task.meanRT_repeat !== null)
+    ? rnd(D.task.meanRT_switch - D.task.meanRT_repeat) : null;
+
+  const swAcc = pct(sw.filter(t=>t.correct).length, sw.length);
+  const rpAcc = pct(rp.filter(t=>t.correct).length, rp.length);
+  D.task.switchCost_acc = (rpAcc!==null && swAcc!==null) ? rnd(rpAcc - swAcc) : null;
+
+  const s_sw = valid.filter(t=>t.csi===CSI_SHORT && t.switchTrial===true);
+  const s_rp = valid.filter(t=>t.csi===CSI_SHORT && t.switchTrial===false);
+  const l_sw = valid.filter(t=>t.csi===CSI_LONG  && t.switchTrial===true);
+  const l_rp = valid.filter(t=>t.csi===CSI_LONG  && t.switchTrial===false);
+
+  D.task.short_switch_RT     = rnd(mean(s_sw.map(t=>t.rt)));
+  D.task.short_repeat_RT     = rnd(mean(s_rp.map(t=>t.rt)));
+  D.task.long_switch_RT      = rnd(mean(l_sw.map(t=>t.rt)));
+  D.task.long_repeat_RT      = rnd(mean(l_rp.map(t=>t.rt)));
+  D.task.shortCSI_switchCost = (D.task.short_switch_RT !== null && D.task.short_repeat_RT !== null)
+    ? rnd(D.task.short_switch_RT - D.task.short_repeat_RT) : null;
+  D.task.longCSI_switchCost  = (D.task.long_switch_RT !== null && D.task.long_repeat_RT !== null)
+    ? rnd(D.task.long_switch_RT  - D.task.long_repeat_RT)  : null;
+  D.task.csiEffect = (D.task.shortCSI_switchCost !== null && D.task.longCSI_switchCost !== null)
+    ? rnd(D.task.longCSI_switchCost - D.task.shortCSI_switchCost) : null;
+
+  renderDebrief();
+}
+
+function renderDebrief() {
+  const T = D.task;
+  document.getElementById('final-results').innerHTML = [
+    { v: (T.overallAcc!==null?T.overallAcc:'—')+'%',   l:'OVERALL ACCURACY' },
+    { v: (T.meanRT_switch||'—')+'ms',                  l:'MEAN RT · SWITCH TRIALS' },
+    { v: (T.meanRT_repeat||'—')+'ms',                  l:'MEAN RT · REPEAT TRIALS' },
+    { v: (T.switchCost_RT!==null?T.switchCost_RT:'—')+'ms',l:'OVERALL SWITCH COST (RT)' },
+  ].map(s=>`<div class="r-box"><span class="rv">${s.v}</span><span class="rl">${s.l}</span></div>`).join('');
+
+  document.getElementById('final-csi').innerHTML = [
+    { v:(T.shortCSI_switchCost!==null?T.shortCSI_switchCost:'—')+'ms', l:'Short CSI (200ms) switch cost' },
+    { v:(T.longCSI_switchCost!==null?T.longCSI_switchCost:'—')+'ms',   l:'Long CSI (1200ms) switch cost' },
+    { v:T.csiEffect!==null?(T.csiEffect>0?'+':'')+T.csiEffect+'ms':'—', l:'CSI preparation effect (negative = benefit)' },
+    { v:(T.switchCost_acc!==null?T.switchCost_acc:'—')+'%',            l:'Accuracy-based switch cost' },
+  ].map(s=>`<div class="csi-box"><span class="cv">${s.v}</span>${s.l}</div>`).join('');
+
+  const sc = T.switchCost_RT;
+  const csiEff = T.csiEffect;
+  let interp = '';
+  if (sc !== null) {
+    if (sc < 50) interp = `Your switch cost of ${sc}ms is relatively small, suggesting efficient task-set reconfiguration. `;
+    else if (sc < 120) interp = `Your switch cost of ${sc}ms falls within a typical range. `;
+    else interp = `Your switch cost of ${sc}ms is on the larger end, often reflecting normal task-learning effects. `;
+  }
+  if (csiEff !== null) {
+    if (csiEff < -20) interp += `You showed a clear preparation benefit: switch cost was smaller on long CSI trials than short CSI trials (${csiEff}ms difference).`;
+    else if (csiEff < 20) interp += `Your preparation effect (${csiEff}ms) was minimal.`;
+    else interp += `Unusually, your switch cost was larger on long CSI trials.`;
+  }
+  document.getElementById('interp-text').textContent = interp || 'Insufficient valid trials to compute interpretation.';
+
+  // Submit data automatically; the prolific completion code is revealed
+  // by onSubmitSuccess/onSubmitFailure so it shows regardless of outcome.
+  submitData();
+}
+
+// ═══════════════════════════════════════════
+// DATA SUBMISSION — STRUCTURED FOR ANALYSIS
+// Two row types: one wide participant row, many trial rows.
+// Matches the OSF analysis plan (hierarchical regression +
+// trial-level LMM) so no reshaping is needed later.
+// ═══════════════════════════════════════════
+function buildParticipantRow() {
+  const T = D.task;
+  return {
+    pid: D.pid,
+    prolificId: D.prolificId || '',
+    recruitmentSource: D.recruitmentSource || '',
+    timestamp: D.timestamp,
+    age: D.demo.age, gender: D.demo.gender, l1: D.demo.l1, l2: D.demo.l2,
+    aoa: D.demo.aoa, immersionYears: D.demo.immersionYears,
+    proficiency: D.demo.proficiency, numLanguagesC1plus: D.demo.numLanguagesC1plus,
+    overtSwitchingFrequency: D.demo.overtSwitchingFrequency, education: D.demo.education,
+    lextale_score: D.lextale.score,
+    lextale_hits: D.lextale.hits,
+    lextale_correctRejections: D.lextale.correctRejections,
+    isluq_F: r2(D.isluq.subscales.F),
+    isluq_C: r2(D.isluq.subscales.C),
+    isluq_A: r2(D.isluq.subscales.A),
+    isluq_total: r2(D.isluq.totalMean),
+    panas_positive: r2(D.panas.positive),
+    panas_negative: r2(D.panas.negative),
+    overallAcc: D.task.overallAcc,
+    meanRT_switch: T.meanRT_switch,
+    meanRT_repeat: T.meanRT_repeat,
+    switchCost_RT: T.switchCost_RT,
+    switchCost_acc: T.switchCost_acc,
+    short_switch_RT: T.short_switch_RT,
+    short_repeat_RT: T.short_repeat_RT,
+    long_switch_RT: T.long_switch_RT,
+    long_repeat_RT: T.long_repeat_RT,
+    shortCSI_switchCost: T.shortCSI_switchCost,
+    longCSI_switchCost: T.longCSI_switchCost,
+    csiEffect: T.csiEffect,
+    userAgent: navigator.userAgent,
+  };
+}
+
+function buildTrialRows() {
+  return (D.task.trials || []).map((t, i) => ({
+    pid: D.pid, phase: 'main', trialNum: i + 1,
+    task: t.task, digit: t.digit, switchTrial: t.switchTrial,
+    congruent: t.congruent, csi: t.csi, correctKey: t.correctKey,
+    response: t.response, rt: t.rt, correct: t.correct,
+  }));
+}
+
+// ═══════════════════════════════════════════
+// SUBMISSION — sent automatically; no local file saved
+// ═══════════════════════════════════════════
+const SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbxCZSaGHRzks45y9s0qmddgiWlLvHdYrLURp9vf036rCAg0Iwn_DZK10GBUxjkzQaZZ/exec';
+
+function submitData(attempt = 1) {
+  const statusEl = document.getElementById('submit-status');
+  if (statusEl) {
+    statusEl.textContent = attempt === 1 ? 'Saving your data…' : 'Saving your data… (retry ' + attempt + '/3)';
+    statusEl.className = 'submit-pending';
+  }
+
+  const payload = JSON.stringify({
+    participant: buildParticipantRow(),
+    trials: buildTrialRows(),
+  });
+
+  // text/plain avoids a CORS preflight against Apps Script.
+  fetch(SUBMIT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: payload,
+  })
+    .then(function (res) { return res.json(); })
+    .then(function (json) {
+      if (json && json.status === 'ok') onSubmitSuccess();
+      else throw new Error('Unexpected response from server');
+    })
+    .catch(function (err) {
+      console.warn('Readable-response submit failed, trying no-cors fallback:', err);
+      // Fire-and-forget: Apps Script still writes the data server-side
+      // even though the browser cannot read the response in no-cors mode.
+      fetch(SUBMIT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: payload,
+      })
+        .then(function () { onSubmitSuccess(); })
+        .catch(function (err2) {
+          console.error('Submission failed:', err2);
+          if (attempt < 3) setTimeout(function () { submitData(attempt + 1); }, 1500 * attempt);
+          else onSubmitFailure();
+        });
+    });
+}
+
+function onSubmitSuccess() {
+  markCompleted();
+  const statusEl = document.getElementById('submit-status');
+  if (statusEl) {
+    statusEl.textContent = '✓ Your data has been saved. Thank you!';
+    statusEl.className = 'submit-ok';
+  }
+  if (D.prolificId) document.getElementById('prolific-block').style.display = 'block';
+}
+
+function onSubmitFailure() {
+  markCompleted(); // they completed the study; the failure is on storage, not their effort
+  const statusEl = document.getElementById('submit-status');
+  if (statusEl) {
+    statusEl.innerHTML = 'There was a problem saving your data automatically. Please email <strong>hevarhusen@gmail.com</strong> and include this ID so your data is not lost: <strong>' + D.pid + '</strong>';
+    statusEl.className = 'submit-err';
+  }
+  if (D.prolificId) document.getElementById('prolific-block').style.display = 'block';
+}
+
+// ─────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────
+function shuffle(arr) {
+  for (let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function mean(arr) {
+  if (!arr||!arr.length) return null;
+  return arr.reduce((a,b)=>a+b,0)/arr.length;
+}
+function pct(n,d) { return d?Math.round(n/d*100):null; }
+function rnd(v)   { return (v!==null&&v!==undefined&&!isNaN(v))?Math.round(v):null; }
+function r2(v)    { return (v!==null&&v!==undefined&&!isNaN(v))?Math.round(v*100)/100:''; }
+
+// ─────────────────────────────────────────
+// ON LOAD: block participants who already completed on this browser
+// ─────────────────────────────────────────
+if (checkAlreadyCompleted()) {
+  showAlreadyCompletedScreen();
+}
+</script>
+</body>
+</html>
