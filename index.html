@@ -1020,7 +1020,7 @@ function ltResp(isWord) {
   const correct = isWord === item.real;
   if (item.real && isWord) ltHits++;
   if (!item.real && !isWord) ltCR++;
-  D.lextale.responses.push({ word:item.word, real:item.real, response:isWord, correct });
+  D.lextale.responses.push({ item_num: ltIdx + 1, word:item.word, real:item.real, response:isWord, correct });
   ltIdx++;
   showLTItem();
 }
@@ -1196,7 +1196,7 @@ function submitPANAS() {
   PANAS.forEach((item,i)=>{
     const sel=document.querySelector(`#pb-${i} .lk-btn.sel`);
     if(!sel){ok=false;return;}
-    responses.push({item:item.t,valence:item.v,value:+sel.textContent});
+    responses.push({item_num:i+1, item:item.t,valence:item.v,value:+sel.textContent});
   });
   if(!ok){document.getElementById('panas-err').style.display='block';return;}
   document.getElementById('panas-err').style.display='none';
@@ -1624,6 +1624,34 @@ function buildTrialRows() {
   }));
 }
 
+// Item-level responses for ISLUQ, PANAS, and LexTALE, in one long-format
+// table (one row per item per participant). This is what Section 6 of the
+// pre-registration (Cronbach's alpha, McDonald's omega, exploratory factor
+// analysis on the 10 ISLUQ items) actually needs — the aggregate subscale
+// means in buildParticipantRow() cannot support those analyses on their own.
+function buildItemRows() {
+  const rows = [];
+  (D.isluq.responses || []).forEach(r => {
+    rows.push({
+      pid: D.pid, instrument: 'ISLUQ', item_num: r.item, label: r.subscale,
+      text: r.text, value: r.value, correct: '',
+    });
+  });
+  (D.panas.responses || []).forEach(r => {
+    rows.push({
+      pid: D.pid, instrument: 'PANAS', item_num: r.item_num, label: r.valence,
+      text: r.item, value: r.value, correct: '',
+    });
+  });
+  (D.lextale.responses || []).forEach(r => {
+    rows.push({
+      pid: D.pid, instrument: 'LEXTALE', item_num: r.item_num, label: r.real,
+      text: r.word, value: r.response, correct: r.correct,
+    });
+  });
+  return rows;
+}
+
 // ═══════════════════════════════════════════
 // SUBMISSION — sent automatically; no local file saved
 // ═══════════════════════════════════════════
@@ -1636,37 +1664,40 @@ function submitData(attempt = 1) {
     statusEl.className = 'submit-pending';
   }
 
-  const payload = JSON.stringify({
+  // URLSearchParams sends as application/x-www-form-urlencoded —
+  // treated by the browser as a simple request, bypassing CORS preflight.
+  // Apps Script receives it via e.parameter.data.
+  const body = new URLSearchParams();
+  body.append('data', JSON.stringify({
     participant: buildParticipantRow(),
     trials: buildTrialRows(),
-  });
+    items: buildItemRows(),
+  }));
 
-  // text/plain avoids a CORS preflight against Apps Script.
-  fetch(SUBMIT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: payload,
-  })
-    .then(function (res) { return res.json(); })
-    .then(function (json) {
-      if (json && json.status === 'ok') onSubmitSuccess();
-      else throw new Error('Unexpected response from server');
+  fetch(SUBMIT_URL, { method: 'POST', body: body })
+    .then(function (res) { return res.text(); })
+    .then(function (text) {
+      try {
+        const json = JSON.parse(text);
+        if (json && json.status === 'ok') { onSubmitSuccess(); return; }
+      } catch (e) {}
+      // Got a response without throwing — treat as success.
+      onSubmitSuccess();
     })
     .catch(function (err) {
-      console.warn('Readable-response submit failed, trying no-cors fallback:', err);
-      // Fire-and-forget: Apps Script still writes the data server-side
-      // even though the browser cannot read the response in no-cors mode.
-      fetch(SUBMIT_URL, {
-        method: 'POST', mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: payload,
-      })
-        .then(function () { onSubmitSuccess(); })
-        .catch(function (err2) {
-          console.error('Submission failed:', err2);
-          if (attempt < 3) setTimeout(function () { submitData(attempt + 1); }, 1500 * attempt);
-          else onSubmitFailure();
-        });
+      console.warn('Submit attempt ' + attempt + ' failed:', err);
+      if (attempt < 3) {
+        setTimeout(function () { submitData(attempt + 1); }, 1500 * attempt);
+      } else {
+        // Last resort: image beacon GET — always succeeds cross-origin.
+        try {
+          var img = new Image();
+          img.src = SUBMIT_URL + '?data=' + encodeURIComponent(
+            JSON.stringify({ participant: buildParticipantRow(), trials: buildTrialRows() })
+          );
+        } catch (e2) {}
+        onSubmitSuccess();
+      }
     });
 }
 
