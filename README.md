@@ -1,1 +1,1 @@
-# LangCogntion
+# LangCognition
